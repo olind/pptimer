@@ -4,5 +4,5 @@
 
 A C# pair programming timer developed 2009. Devblog: https://pptimer.wordpress.com/.
 
-## Screenshots (from 2009)
+## Screenshots
 ![PPTimer screenshots](pptimer-screenshots.png "Pair programming timer screenshots")
