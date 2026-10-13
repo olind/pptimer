@@ -14,13 +14,23 @@ dotnet run --project PPTimer
 
 Look for the clock icon in the menu bar (macOS) or system tray (Windows/Linux) and use its menu: **Start timer**, **Stop timer**, **Set time**, **Quit**. Hover the icon to see how much time is left.
 
-To build a standalone app, e.g. for Apple Silicon Macs:
+### macOS app
 
 ```sh
-dotnet publish PPTimer -c Release -r osx-arm64 --self-contained
+tools/package-macos.sh            # Apple Silicon; use osx-x64 for Intel Macs
 ```
 
-(Use `win-x64`, `linux-x64`, etc. for other platforms.)
+This builds `build/PPTimer.app`, a menu bar only app (no Dock icon). Drag it to `/Applications`. It is signed ad hoc, not notarized, so on another Mac the first launch needs right-click → **Open**.
+
+### Windows / Linux
+
+```sh
+dotnet publish PPTimer -c Release -r win-x64 --self-contained     # or linux-x64
+```
+
+Then run `PPTimer.exe` / `PPTimer` from the publish folder.
+
+The tray and app icons are drawn by `tools/draw-icons.py`.
 
 Sound is played with the OS's own player: `PlaySound` on Windows, `afplay` on macOS, `paplay`/`aplay` on Linux. Tray icons on Linux need a desktop with StatusNotifier/AppIndicator support.
 
