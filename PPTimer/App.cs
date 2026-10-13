@@ -11,6 +11,9 @@ public class App : Application {
 	private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(1) };
 	private TrayIcon trayIcon = null!;
 	private readonly NativeMenuItem statusItem = new() { IsEnabled = false };
+	private static readonly int[] presets = [5, 10, 15, 20, 25, 30];
+	private readonly List<(int minutes, NativeMenuItem item)> presetItems = new();
+	private NativeMenuItem customItem = null!;
 	private int minutes = 10;
 	private DateTime endsAt;
 
@@ -34,10 +37,7 @@ public class App : Application {
 		menu.Add(new NativeMenuItemSeparator());
 		menu.Add(MenuItem("Start timer", startTimer));
 		menu.Add(MenuItem("Stop timer", stopTimer));
-		menu.Add(MenuItem("Set time", () => {
-			stopTimer();
-			_ = setTime();
-		}));
+		menu.Add(new NativeMenuItem("Set time") { Menu = setTimeMenu() });
 		menu.Add(new NativeMenuItemSeparator());
 		menu.Add(MenuItem("Quit", () => ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown()));
 
@@ -49,8 +49,37 @@ public class App : Application {
 		};
 		TrayIcon.SetIcons(this, new TrayIcons { trayIcon });
 		setStatus("Start me up!");
+		updateChecks();
 
 		base.OnFrameworkInitializationCompleted();
+	}
+
+	private NativeMenu setTimeMenu() {
+		var menu = new NativeMenu();
+		foreach (var preset in presets) {
+			var item = MenuItem($"{preset} min", () => {
+				minutes = preset;
+				startTimer();
+			});
+			item.ToggleType = MenuItemToggleType.Radio;
+			presetItems.Add((preset, item));
+			menu.Add(item);
+		}
+		menu.Add(new NativeMenuItemSeparator());
+		customItem = MenuItem("Custom…", () => {
+			stopTimer();
+			_ = setTime("How many minutes?");
+		});
+		customItem.ToggleType = MenuItemToggleType.Radio;
+		menu.Add(customItem);
+		return menu;
+	}
+
+	private void updateChecks() {
+		foreach (var (preset, item) in presetItems) item.IsChecked = preset == minutes;
+		var custom = !presets.Contains(minutes);
+		customItem.IsChecked = custom;
+		customItem.Header = custom ? $"Custom ({minutes} min)…" : "Custom…";
 	}
 
 	private static NativeMenuItem MenuItem(string header, Action action) {
@@ -62,8 +91,8 @@ public class App : Application {
 	private static WindowIcon LoadIcon(string name) =>
 		new(AssetLoader.Open(new Uri($"avares://PPTimer/Assets/{name}")));
 
-	private async Task setTime() {
-		var result = await InputBox.Show("Time", "Minutes", clockIcon, minutes);
+	private async Task setTime(string message) {
+		var result = await MinutesPrompt.Ask(message, minutes, clockIcon);
 		if (result is int value) {
 			minutes = value;
 			startTimer();
@@ -73,6 +102,7 @@ public class App : Application {
 	}
 
 	private void startTimer() {
+		updateChecks();
 		endsAt = DateTime.Now.AddMinutes(minutes);
 		timer.Start();
 		trayIcon.Icon = runningIcon;
@@ -105,6 +135,6 @@ public class App : Application {
 		trayIcon.Icon = alertIcon;
 		setStatus("Ding dong!");
 		Sound.Play("gong.wav");
-		_ = setTime();
+		_ = setTime("Time to switch driver!\nMinutes for the next round:");
 	}
 }

@@ -23,9 +23,9 @@ public class InputBox : Window {
 			Maximum = 999,
 			Increment = 1,
 			FormatString = "0",
-			Width = 140,
+			HorizontalAlignment = HorizontalAlignment.Stretch,
 		};
-		var ok = new Button { Content = "OK", IsDefault = true, Width = 80, HorizontalContentAlignment = HorizontalAlignment.Center };
+		var ok = new Button { Content = "Start", IsDefault = true, Width = 80, HorizontalContentAlignment = HorizontalAlignment.Center };
 		var cancel = new Button { Content = "Cancel", IsCancel = true, Width = 80, HorizontalContentAlignment = HorizontalAlignment.Center };
 		ok.Click += (s, e) => finish((int?)input.Value);
 		cancel.Click += (s, e) => finish(null);
@@ -35,14 +35,8 @@ public class InputBox : Window {
 			Margin = new Thickness(16),
 			Spacing = 12,
 			Children = {
-				new StackPanel {
-					Orientation = Orientation.Horizontal,
-					Spacing = 12,
-					Children = {
-						new TextBlock { Text = prompt, VerticalAlignment = VerticalAlignment.Center, Width = 60 },
-						input,
-					},
-				},
+				new TextBlock { Text = prompt },
+				input,
 				new StackPanel {
 					Orientation = Orientation.Horizontal,
 					HorizontalAlignment = HorizontalAlignment.Right,
